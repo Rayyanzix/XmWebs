@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>All Mr. M creation - Report System</title>
+    <style>
+        body { background-color: #000; color: #00ff41; font-family: 'Courier New', monospace; margin: 0; height: 100vh; overflow: hidden; }
+        #matrix { position: fixed; top: 0; left: 0; z-index: -1; }
+
+        /* Puzzle Layer */
+        #puzzle-layer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 10000; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center;
+        }
+        #glitch { font-size: 4em; font-weight: bold; color: #00ff41; letter-spacing: 15px; text-shadow: 2px 0 #f00, -2px 0 #00f; margin-bottom: 20px; min-height: 1.2em; }
+
+        /* Content */
+        .main-wrapper { height: 100vh; overflow-y: auto; position: relative; z-index: 1; display: none; }
+        .container { max-width: 850px; margin: 0 auto; padding: 40px 20px; }
+        
+        #login-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 10001; justify-content: center; align-items: center; }
+        
+        /* Admin Panel & Box */
+        #adminPanel { display: none; background: rgba(30, 0, 0, 0.9); border: 2px dashed #ff0000; padding: 25px; margin-bottom: 30px; }
+        .report-log-box { background: #111; border: 1px solid #ff0000; padding: 10px; margin-top: 10px; max-height: 200px; overflow-y: auto; font-size: 13px; color: #ffaaaa; }
+        
+        .script-box, .report-box { background: rgba(0, 0, 0, 0.9); border: 1px solid #00ff41; margin-bottom: 20px; }
+        .header { background: #00ff41; padding: 8px; color: #000; font-weight: bold; display: flex; justify-content: space-between; }
+        pre { padding: 15px; color: #0f0; margin: 0; font-size: 13px; overflow-x: auto; }
+        
+        /* Form & Buttons */
+        .btn { background: #000; color: #00ff41; border: 1px solid #00ff41; padding: 8px 15px; cursor: pointer; font-weight: bold; }
+        .btn-red { border-color: red; color: red; }
+        input, textarea { background: #000; border: 1px solid #00ff41; color: #00ff41; padding: 10px; width: 100%; box-sizing: border-box; margin-bottom: 10px; font-family: 'Courier New'; }
+    </style>
+</head>
+<body>
+
+    <div id="puzzle-layer">
+        <p style="color:red">[ SYSTEM_ENCRYPTED ]</p>
+        <div id="glitch">DECRYPT</div>
+        <input type="text" id="answer" style="width: 250px; text-align: center; border-color: red;" placeholder="CODE?">
+    </div>
+
+    <div id="login-modal">
+        <div style="border: 2px solid #ff0000; padding: 30px; background: #000; text-align: center;">
+            <h3 style="color:#ff0000">ROOT_ACCESS_REQUIRED</h3>
+            <input type="password" id="adminPassInput" placeholder="*******">
+            <br>
+            <button class="btn" onclick="checkAdminPass()">VERIFY</button>
+            <button class="btn btn-red" onclick="document.getElementById('login-modal').style.display='none'">ABORT</button>
+        </div>
+    </div>
+
+    <canvas id="matrix"></canvas>
+
+    <div class="main-wrapper" id="main-content">
+        <div class="container">
+            <h1 style="text-align: center;">[ ALL MR. M CREATION ]</h1>
+            
+            <div style="text-align: right; margin-bottom: 20px;">
+                <button class="btn" onclick="document.getElementById('login-modal').style.display='flex'">ADMIN LOGIN</button>
+            </div>
+
+            <div id="adminPanel">
+                <h3 style="color:red">ADMIN_DASHBOARD</h3>
+                <p>REPORT LOGS:</p>
+                <div id="reportLogs" class="report-log-box">Belum ada laporan...</div>
+                <button class="btn btn-red" onclick="clearReports()" style="margin-top:5px; font-size:10px;">CLEAR LOGS</button>
+                <hr style="border:0.5px solid #333; margin:20px 0">
+                <p>ADD SCRIPT:</p>
+                <input type="text" id="scName" placeholder="Script Name">
+                <textarea id="scContent" placeholder="Loadstring..."></textarea>
+                <button class="btn" onclick="addScript()">PUBLISH</button>
+            </div>
+
+            <div id="scriptList">
+                <div class="script-box">
+                    <div class="header"><span>SYSTEM: X ban Player</span><button class="btn" onclick="copyCode(this)">EXECUTE</button></div>
+                    <pre><code>loadstring(game:HttpGet("https://pastebin.com/raw/3Sw2PRBP", true))()</code></pre>
+                </div>
+            </div>
+
+            <hr style="border:0.5px solid #222; margin: 40px 0;">
+
+            <div class="report-box">
+                <div class="header" style="background: red; color: white;"><span>SEND SARAN / REPORT</span></div>
+                <div style="padding: 15px;">
+                    <input type="text" id="userName" placeholder="Nama Anda (Contoh: Mr.M)">
+                    <textarea id="userMsg" placeholder="Saran / Laporan... (Contoh: web nya cacad)"></textarea>
+                    <button class="btn" style="width: 100%;" onclick="submitReport()">SUBMIT REPORT</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const PASS = "MYCRUSHCANTIK";
+        
+        // Puzzle Logic
+        const target = "DECRYPT";
+        const chars = "!@#$%^&*()_+0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        let isGlitching = true;
+        setInterval(() => {
+            if(isGlitching) {
+                let r = ""; for(let i=0; i<target.length; i++) r += chars.charAt(Math.floor(Math.random()*chars.length));
+                document.getElementById('glitch').innerText = r;
+            } else { document.getElementById('glitch').innerText = target; }
+        }, 100);
+        setInterval(() => { isGlitching = !isGlitching; }, 3000);
+
+        document.getElementById('answer').addEventListener('input', function() {
+            if(this.value.toUpperCase() === target) {
+                document.getElementById('puzzle-layer').style.display = 'none';
+                document.getElementById('main-content').style.display = 'block';
+            }
+        });
+
+        // Admin Auth
+        function checkAdminPass() {
+            if(document.getElementById('adminPassInput').value === PASS) {
+                document.getElementById('adminPanel').style.display = 'block';
+                document.getElementById('login-modal').style.display = 'none';
+                renderReports();
+            } else { alert("ACCESS DENIED!"); }
+        }
+
+        // --- REPORT SYSTEM ---
+        function submitReport() {
+            let name = document.getElementById('userName').value;
+            let msg = document.getElementById('userMsg').value;
+            if(!name || !msg) return alert("Isi nama dan pesan!");
+
+            let reports = JSON.parse(localStorage.getItem('m_reports') || "[]");
+            reports.push({ name: name, msg: msg, time: new Date().toLocaleString() });
+            localStorage.setItem('m_reports', JSON.stringify(reports));
+
+            alert("Report terkirim ke Admin!");
+            document.getElementById('userName').value = "";
+            document.getElementById('userMsg').value = "";
+        }
+
+        function renderReports() {
+            let reports = JSON.parse(localStorage.getItem('m_reports') || "[]");
+            let log = document.getElementById('reportLogs');
+            if(reports.length === 0) {
+                log.innerHTML = "Belum ada laporan...";
+                return;
+            }
+            log.innerHTML = reports.map(r => `<div>[${r.time}] <b>${r.name}</b>: ${r.msg}</div>`).reverse().join("");
+        }
+
+        function clearReports() {
+            if(confirm("Hapus semua log?")) {
+                localStorage.removeItem('m_reports');
+                renderReports();
+            }
+        }
+
+        // --- SCRIPT SYSTEM ---
+        function addScript() {
+            let n = document.getElementById('scName').value;
+            let c = document.getElementById('scContent').value;
+            if(n && c) {
+                let s = JSON.parse(localStorage.getItem('m_scripts_v5') || "[]");
+                s.push({ name: n, code: c });
+                localStorage.setItem('m_scripts_v5', JSON.stringify(s));
+                renderScripts();
+                document.getElementById('scName').value = ""; document.getElementById('scContent').value = "";
+            }
+        }
+
+        function renderScripts() {
+            let s = JSON.parse(localStorage.getItem('m_scripts_v5') || "[]");
+            let list = document.getElementById('scriptList');
+            list.innerHTML = `<div class="script-box"><div class="header"><span>SYSTEM: X ban Player</span><button class="btn" onclick="copyCode(this)">EXECUTE</button></div><pre><code>loadstring(game:HttpGet("https://pastebin.com/raw/3Sw2PRBP", true))()</code></pre></div>`;
+            s.forEach(item => {
+                list.innerHTML += `<div class="script-box"><div class="header"><span>USER: ${item.name}</span><button class="btn" onclick="copyCode(this)">EXECUTE</button></div><pre><code>${item.code}</code></pre></div>`;
+            });
+        }
+
+        function copyCode(btn) {
+            const code = btn.closest('.script-box').querySelector('code').innerText;
+            navigator.clipboard.writeText(code);
+            btn.innerText = "COPIED!";
+            setTimeout(() => btn.innerText = "EXECUTE", 2000);
+        }
+
+        // Matrix
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        const drops = Array(Math.floor(canvas.width/16)).fill(1);
+        setInterval(() => {
+            ctx.fillStyle = "rgba(0,0,0,0.05)"; ctx.fillRect(0,0,canvas.width,canvas.height);
+            ctx.fillStyle = "#0f0";
+            drops.forEach((y, i) => {
+                const txt = chars.charAt(Math.floor(Math.random()*chars.length));
+                ctx.fillText(txt, i*16, y*16);
+                if(y*16 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            });
+        }, 33);
+
+        window.onload = renderScripts;
+    </script>
+</body>
+</html>
